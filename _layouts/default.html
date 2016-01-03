@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  <body>
+
+    {% include header.html %}
+
+    <div class="wrapper">
+        <div class="sidebar-wrapper">
+            <img src="{{ site.baseurl }}/images/profile.png" class="me">
+            <p>
+              {% include icon-github.html username=site.github_username %} /
+              {% include icon-twitter.html username=site.twitter_username %}
+            </p>
+        </div>
+        <div class="content-wrapper">
+            {{ content }}
+        </div>
+    </div>
+
+    {% include footer.html %}
+
+  </body>
+
+</html>
