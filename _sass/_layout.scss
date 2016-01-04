@@ -184,6 +184,16 @@ body {
         width: -webkit-calc(100% - (#{$spacing-unit} / 2));
         width:         calc(100% - (#{$spacing-unit} / 2));
     }
+
+    .sidebar-wrapper {
+      display: none;
+    }
+
+    .content-wrapper {
+      float: none;
+      width: -webkit-calc(100% - (#{$spacing-unit} / 2));
+      width:         calc(100% - (#{$spacing-unit} / 2));
+    }
 }
 
 
