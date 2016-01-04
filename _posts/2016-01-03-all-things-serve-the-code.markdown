@@ -2,6 +2,8 @@
 layout: post
 title:  "All Things Serve The Code"
 date:   2016-01-03 16:01:50 -0500
+author: "Ryan Norman"
+tags:   "technical lead, developer, programming, coding, rails, ruby"
 ---
 
 Well, here I am; moved into a lead position on a team. Obviously earned through hard work and perseverance.

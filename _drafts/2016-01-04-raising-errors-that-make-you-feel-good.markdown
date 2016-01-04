@@ -2,6 +2,8 @@
 layout: post
 title:  "Raising Errors That Make You Feel Good"
 date:   2016-01-04 08:00:00 -0500
+author: "Ryan Norman"
+tags:   "ruby, rails, exceptions, errors, developer, programming, coding"
 ---
 Sometimes I like seeing errors. You heard me right, seeing an issue come through
 in Sentry, Rollbar, Airbrake or whatever floats your boat presents an opportunity
