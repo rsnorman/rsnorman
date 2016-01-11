@@ -1,0 +1,72 @@
+---
+layout: post
+title:  "Battling A Great, White Sidekiq Queue"
+date:   2016-01-18 08:00:00 -0500
+author: "Ryan Norman"
+tags:   "ruby, rails, sidekiq, background tasks, queuing, developer, programming, coding"
+---
+- first day on support
+- pairing with dev from different team, new hire
+- started seeing slow (15 min) for some of our light on tests
+- assumed it was outside our app since we don't do a whole lot with background tasks
+- spent time trying to figure out which app was slow, had no luck
+- finally looked at our sidekiq queue, over 5000 jobs
+- pointed out by co-lead that we were only running one thread for each server for sidekiq
+  - spent time researching configuration, defaulted to 25, wtf
+  - changed configuration to 17, started sidekiq locally and saw 17 thread, perfect, just got overridden somewhere
+  - deployed fix to testing environment, still only 1 thread, very confused
+  - new dev asked if we were setting concurrency in blue.pill
+    - hard coded to one by long gone dev
+    - appeared to just be accident after looking at git history
+    - face palm as to why that wouldn't show up locally
+  - easily fixed and confirmed but decided to stick with only 5 thread per server
+    - didn't want to eat up all resources working through queue
+    - over 6,000 sidekiq jobs now
+- our backed up queue immediately started working down a couple hundred jobs every 20 seconds or so
+- bluepill would restart every couple minutes due to memory leak so would lose ground
+- breathed sigh of relief and just watched for a bit
+- queue plateaued at 1500 and stayed constant
+- had a decent long-running job (20-30 seconds) that were all being worked by 20 threads
+- we had gone through all the quick jobs and the slow ones were clogging up the queue
+- started getting client questions about slowness of reports, they were in a low-priority queue
+- we were stumped
+  - how do we get through these jobs when they are so slow
+  - increase concurrency could eat up even more resources, already maxed CPU and high memory
+  - queue started climbing again
+  - more clients began complaining that other background jobs weren't running
+  - errors started coming in due to jobs not being able to make connections to the database
+  - alerts were coming in that our servers were getting overloaded
+- first idea
+  - bump concurrency to 25 and deal with site slowness while we worked down
+  - already having problems with not a large enough database pool
+  - DBAs said we were already close to max for the application and wouldn't add more during peak hours
+  - Given permission to bump from 5 to 7 for database connection pool
+- second idea
+  - prioritize certain jobs over others
+  - which jobs should go first? slow running or fast ones
+  - decided to put 2 fast jobs in critical queue because
+    1. important client job
+    2. thousands were coming in for the other
+- third idea
+  - for the job being queued thousands of times, just make no-op and run later
+  - no data would be lost
+  - just made prettier format for audit items
+- decided to go with first idea, follow by the second
+- saw immediate progress since jobs were no longer piling up
+- realized that the already queued jobs would not be moved to critical queue, just new ones
+- prioritized more client visible jobs
+- sidekiq chewed through queue quickly
+- we all realized it was going to get stuck at slow jobs again
+- time to fix the slow job
+- researched in new relic
+- found thousands of database calls on average per job transaction, wtf
+- the rabbit hole was deep
+- started digging and found an immutable object with not a single bit of caching
+- too many n+1 problems to even count
+- found one of the most called and expensive looking method with no params and cached
+- no way to easily test locally to prove theory
+- pushed to integration environment and felt liked it worked but still not positive
+- queue leveled at 1000 but still high CPU and memory trying to keep head above water
+- co-lead and I made call to throw a hail mary and deploy code
+- immediate results, throughput through the roof and queue quickly decreasing
+- the sweet taste of victory as I see the magic number 0 in schedule jobs
