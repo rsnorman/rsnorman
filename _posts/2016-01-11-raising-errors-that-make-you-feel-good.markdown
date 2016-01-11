@@ -19,9 +19,9 @@ services for identifying accounts. Someone made the correct decision to raise
 an error when the account could not be found:
 
 {% highlight ruby %}
-  def account(account_token)
-    Account.find_by!(token: account_token)
-  end
+def account(account_token)
+  Account.find_by!(token: account_token)
+end
 {% endhighlight %}
 
 This is good because sometimes an account doesn't get set up correctly or the
@@ -30,7 +30,7 @@ a programmer error and no token is even sent in. Want to take a guess at the
 wonderful error we receive:
 
 {% highlight ruby %}
-  ActiveRecord::RecordNotFound: ActiveRecord::RecordNotFound
+ActiveRecord::RecordNotFound: ActiveRecord::RecordNotFound
 {% endhighlight %}
 
 I can figure out from the stack trace what's going on. Most of the devs who have
@@ -45,14 +45,14 @@ Let's take the most simple step and at least give more information
 when raising the `ActiveRecord::RecordNotFound` exception.
 
 {% highlight ruby %}
-  def account(account_token)
-    Account.find_by!(token: account_token)
-  rescue ActiveRecord::RecordNotFound => exception
-    fail(
-      exception,
-      "Account could not be found for token: #{account_token}"
-    )
-  end
+def account(account_token)
+  Account.find_by!(token: account_token)
+rescue ActiveRecord::RecordNotFound => exception
+  fail(
+    exception,
+    "Account could not be found for token: #{account_token}"
+  )
+end
 {% endhighlight %}
 
 Ahh, I'm starting to feel better now. No more digging, I can clearly see which
