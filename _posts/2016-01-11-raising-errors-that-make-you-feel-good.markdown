@@ -79,7 +79,7 @@ end
 {% endhighlight %}
 
 Okay, now we have a single way to find an `Account` by a token but I still want the
-errors to jump out at me and I see them in my error service. They could still get
+errors to jump out at me when I see them in my error service. They could still get
 lost in other `ActiveRecord::RecordMissingError`s for something unrelated. Did
 anyone order a custom exception?
 
