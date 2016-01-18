@@ -104,14 +104,14 @@ body {
  */
 .sidebar-wrapper {
   float: left;
-  width: -webkit-calc(35% - (#{$spacing-unit} / 2));
-  width:         calc(35% - (#{$spacing-unit} / 2));
+  width: -webkit-calc(30% - (#{$spacing-unit} / 2));
+  width:         calc(30% - (#{$spacing-unit} / 2));
 }
 
 .content-wrapper {
   float: left;
-  width: -webkit-calc(65% - (#{$spacing-unit} / 2));
-  width:         calc(65% - (#{$spacing-unit} / 2));
+  width: -webkit-calc(70% - (#{$spacing-unit} / 2));
+  width:         calc(70% - (#{$spacing-unit} / 2));
 }
 
 
