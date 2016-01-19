@@ -107,7 +107,11 @@ def start_shot_clock(team.name)
     team.took_possession_at.to_s(:db), # Sidekiq will convert to string anyways
   )
 end
+{% endhighlight %}
 
+&hellip;and in our worker class&hellip;
+
+{% highlight ruby %}
 # shot_clock_foul_caller.rb
 def perform(game_id, team_name, possession_started_at)
   possessing_team = Game.find(game_id).get_team(team_name)
