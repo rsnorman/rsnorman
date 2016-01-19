@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Not Fouling Out With Sidekiq"
+title:  "Avoiding Fouls With Scheduled Sidekiq Jobs"
 date:   2016-01-19 08:00:00 -0500
 author: "Ryan Norman"
 tags:   "ruby, rails, sidekiq, background jobs, asynchronous, developer, programming, coding"
