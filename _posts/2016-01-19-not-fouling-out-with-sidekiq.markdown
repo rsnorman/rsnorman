@@ -89,13 +89,13 @@ def start_shot_clock(team.name)
 end
 {% endhighlight %}
 
-Great, now we won't have fouls called on teams that really aren't in violation of the rule. What about the new problem we introduced? Oh, it's not obvious, come on, you're better than that!
+Great, now we won't have fouls called on teams that really aren't in violation of the rule. What about the new problem we introduced? Oh, it's not obvious? Come on, you're better than that!
 
 Imagine we have tens of thousands of games, all being played at the same time, all firing and deleting their own Sidekiq `ShotClockFoulCaller` jobs. How is your performance going to hold up having to step through all those jobs just to find the correct one to delete? It quickly becomes apparent that this solution is not going to scale well.
 
-*So, what options do we have that'll stop the old job and won't bog our system down when our Ruby on Rails basketball simulator becomes more popular than Google?*
+*So, what options do we have that'll stop the old job but won't bog our system down when our Ruby on Rails basketball simulator becomes more popular than Google?*
 
-We have a couple different options but they all will result in passing in some more information to our Sidekiq worker that will help make decisions on whether or not to raise a shot clock violation. The easiest thing we can do is start tracking when a team took possession of a ball and passing this as an argument to the worker.
+We have a couple different options and they all will result in passing in some more information to our Sidekiq worker that will help make decisions on whether or not to raise a shot clock violation. The easiest thing we can do is start tracking when a team took possession of a ball and passing this as an argument to the worker.
 
 {% highlight ruby %}
 # game.rb
