@@ -1,10 +1,10 @@
 ---
 layout: post
-title:  "Overriding Future Methods"
+title:  "Clairvoyant Ruby"
 date:   2016-03-03 08:00:00 -0500
 author: "Ryan Norman"
 tags:   "override, developer, programming, coding, rails, ruby, module, dynamic programming"
-excerpt: "I'm often told it's impossible to predict the future but does that same axiom hold true for overriding future methods in Ruby?"
+excerpt: "I'm often told it's impossible to predict the future but does that same axiom hold true for overriding methods yet to be defined in Ruby?"
 ---
 
 The great thing about programming is it always finds a way to humble you.
@@ -164,7 +164,9 @@ not working when included.
 
 I wrack my brain. I try to figure out how to hook into Sidekiq's source code. I
 do what we do when presented with a problem we haven't seen before: I search
-StackOverflow. Nothing, nada, `nil`.
+StackOverflow. Nothing, nada, `nil`. My confidence was sky high upon the
+beginning of this endeavor but saying it's been knocked a few pegs is an
+understatement.
 
 I'm about to give up and plan on writing documentation on what `prepend` does
 and why it must be used when I stumble upon an interesting hit way down the
@@ -208,4 +210,5 @@ end
 
 The underlying code becomes a bit more complicated but it's use is simple and
 best of all, we can override future methods in a way that doesn't require us to
-remember less-understood Ruby concepts.
+remember less-understood Ruby concepts. I once again don't feel useless&hellip;
+well, until the next time my hubris gets the best of me.
