@@ -14,7 +14,7 @@ that once was complicated for me is now magically easy because I've done it a
 thousand times. Emphasis on "should" if the bolding wasn't obvious enough.
 
 For example, I recently started working on a library to mark and safely expose
-personal fields. My thought process is to mark a field as safe to show similar
+personal data. My thought process is to mark a field as safe to display similar
 to how Rails used to allow html in ERB. The one caveat is the method must
 be in a block that allows this unwrapping. No problem, right?
 
@@ -58,14 +58,15 @@ module SafeExpose
 end
 {% endhighlight %}
 
-I'm feeling good. My ten years of experience is paying off finally. We all know
-it's going to take a turn for the worse now.
+I'm feeling good. My ten years of experience is paying off.
+
+*We all know it's going to take a turn for the worse now.*
 
 Next up is the same treatment for our Sidekiq jobs that send personal data to
 third-parties. The JSON also must be serialized safely and the jobs marked as
 allowing this safe action. I know right off the bat that Sidekiq workers don't
-have nice callbacks like Rails controllers. Who let a little thing like this
-hold them back, I'll just override the `perform` method that each worker
+have nice callbacks like Rails controllers. But we won't let a little thing like
+this hold us back. I'll just override the `perform` method that each worker
 implements.
 
 {% highlight ruby %}
@@ -94,9 +95,9 @@ end
 Okay, yeah, of course, my `SendPersonService` is actually inheriting from my
 `SafeExpose::Sidekiq` module and `Sidekiq::Worker` classes are just duck types.
 
-Well, fiddlesticks. Unless I use that Rails monkey-patched method
-`alias_method_chain` that I've never called correctly without looking at the
-documentation. Let's try that.
+Well, fiddlesticks. I start to think I'm stuck until realizing I can use that
+Rails monkey-patched method `alias_method_chain` that I've honestly never called
+correctly without looking at the documentation. Let's take a crack at using it.
 
 {% highlight ruby %}
 module SafeExpose::Sidekiq
@@ -114,16 +115,17 @@ module SafeExpose::Sidekiq
 end
 {% endhighlight %}
 
-But I do know one of the quirks with `alias_method_chain` is it must be called
-after the method is defined, which means I have to include my module after
-`perform`.
+Looking good. I no longer have to worry about inheritance but I do know one of
+the quirks with `alias_method_chain` is it must be called after the method is
+defined. Which means I have to include my module after `perform`.
 
 {% highlight ruby %}
 class SendPersonService
   include Sidekiq::Worker
 
   def perform(person_id)
-    http_post(first_name: Person.find(person_id).first_name.expose)
+    person = Person.find(person_id)
+    http_post(first_name: person.first_name.expose!)
   end
   include SafeExpose::Sidekiq
 end
@@ -131,10 +133,13 @@ end
 
 Ugh, that's ugly *and* unintuitive.
 
-What else can I do? I do realize I have another trick up my sleeve that doesn't
-require including my mixin after the method. I'm talking way past elbow deep.
-I'll use the `prepend` method to insert my module after `SendPersonService` in
-the inheritance hierarchy. Once again overriding the `perform` method:
+What else can I do? Do I have any other tricks up my sleeve that don't
+require including my mixin after the method. I dig real deep, like past the elbow.
+I remember reading once about a new way to add modules to a Ruby class called
+`prepend`. It ends up inserting the module after the class in the inheritance
+hierarchy. The class it is added to actually inherits from the
+module. A light bulb turns on and I realize if I can have `SendPersonService`
+inherit from my `SafeExpose` module, I can once again override the `perform` method:
 
 {% highlight ruby %}
 class SendPersonService
@@ -147,12 +152,12 @@ class SendPersonService
 end
 {% endhighlight %}
 
-Whammy!!! We can easily use our module and expose personal data safely in our
+Whammy!!! We can now use our module and expose personal data safely in our
 Sidekiq job.
 
 *Buttttt*&hellip; this still bugs me. Really, `prepend`? It's been around since
 Ruby 2.0 but not many encounter or use it in their daily Ruby or Rails work. I
-can just now see the questions (accusations) of why the `SafeExpose::Sidekiq` is
+can just see the questions (accusations) of why the `SafeExpose::Sidekiq` is
 not working when included.
 
 **Is there another option?**
@@ -161,12 +166,13 @@ I wrack my brain. I try to figure out how to hook into Sidekiq's source code. I
 do what we do when presented with a problem we haven't seen before: I search
 StackOverflow. Nothing, nada, `nil`.
 
-I'm about to give up and plan on writing
-documentation on what `prepend` does and why it must be used when I stumble upon
-an interesting hit way down the Google search results. A callback method I've
-never heard of called `method_added`. "Naw, that's too easy," I tell myself.
-Sure enough, it's possible to know when a method is added to a class in
-Ruby. The solution comes to me immediately:
+I'm about to give up and plan on writing documentation on what `prepend` does
+and why it must be used when I stumble upon an interesting hit way down the
+Google search results. A callback method I've never heard of called
+`method_added`. "Naw, that's too easy," I tell myself. I dig into the documentation
+like my 8-month pregnant wife treats a bowl of ice cream. Sure enough, it's
+possible to know when a method is added to a class in Ruby. The solution comes
+to me immediately:
 
 {% highlight ruby %}
 module SafeExpose::Sidekiq
@@ -201,4 +207,5 @@ end
 {% endhighlight %}
 
 The underlying code becomes a bit more complicated but it's use is simple and
-best of all, we can override future methods in a way that is not surprising.
+best of all, we can override future methods in a way that doesn't require us to
+remember less-understood Ruby concepts.
