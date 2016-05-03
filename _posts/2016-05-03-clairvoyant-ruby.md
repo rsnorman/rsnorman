@@ -15,11 +15,11 @@ thousand times. Emphasis on "should" if the bolding wasn't obvious enough.
 
 For example, I recently started working on a library to mark and safely expose
 personal data. My thought process is to mark a field as safe to display similar
-to how Rails used to allow html in ERB. The one caveat is the method must
-be in a block that allows this unwrapping. No problem, right?
+to how Rails allows HTML in a view template. The one caveat is the method must
+be in a block that allows this unwrapping or an error is thrown. No problem, right?
 
 So, I create a nice mixin for controllers that allows me to mark actions as
-safely exposing person information.
+safely exposing personal information.
 
 {% highlight ruby %}
 # app/controllers/persons_controller.rb
@@ -58,9 +58,11 @@ module SafeExpose
 end
 {% endhighlight %}
 
-I'm feeling good. My ten years of experience is paying off.
+I'm feeling good. My ten years of experience is paying off. It's at this point,
+when I'm most sure of myself, that I should take a step back before blundering
+gleefully into the next piece of code.
 
-*We all know it's going to take a turn for the worse now.*
+## Where Things Took a Turn for the Worse
 
 Next up is the same treatment for our Sidekiq jobs that send personal data to
 third-parties. The JSON also must be serialized safely and the jobs marked as
@@ -86,7 +88,8 @@ class SendPersonService
   include SafeExpose::Sidekiq
 
   def perform(person_id)
-    http_post(first_name: Person.find(person_id).first_name.expose)
+    person = Person.find(person_id)
+    http_post(first_name: person.first_name.expose!)
   end
 end
 {% endhighlight %}
@@ -97,7 +100,9 @@ Okay, yeah, of course, my `SendPersonService` is actually inheriting from my
 
 Well, fiddlesticks. I start to think I'm stuck until realizing I can use that
 Rails monkey-patched method `alias_method_chain` that I've honestly never called
-correctly without looking at the documentation. Let's take a crack at using it.
+correctly without looking at the documentation (the more verbose but not
+Rails-dependent `alias_method` will also work here). Let's take a crack at
+using it.
 
 {% highlight ruby %}
 module SafeExpose::Sidekiq
@@ -147,13 +152,16 @@ class SendPersonService
   prepend SafeExpose::Sidekiq
 
   def perform(person_id)
-    http_post(first_name: Person.find(person_id).first_name.expose)
+    person = Person.find(person_id)
+    http_post(first_name: person.first_name.expose!)
   end
 end
 {% endhighlight %}
 
 Whammy!!! We can now use our module and expose personal data safely in our
 Sidekiq job.
+
+## Nitpicks
 
 *Buttttt*&hellip; this still bugs me. Really, `prepend`? It's been around since
 Ruby 2.0 but not many encounter or use it in their daily Ruby or Rails work. I
@@ -167,6 +175,8 @@ do what we do when presented with a problem we haven't seen before: I search
 StackOverflow. Nothing, nada, `nil`. My confidence was sky high upon the
 beginning of this endeavor but saying it's been knocked a few pegs is an
 understatement.
+
+## Predicting The Future
 
 I'm about to give up and plan on writing documentation on what `prepend` does
 and why it must be used when I stumble upon an interesting hit way down the
@@ -203,7 +213,8 @@ class SendPersonService
   include SafeExpose::Sidekiq
 
   def perform(person_id)
-    http_post(first_name: Person.find(person_id).first_name.expose)
+    person = Person.find(person_id)
+    http_post(first_name: person.first_name.expose!)
   end
 end
 {% endhighlight %}
